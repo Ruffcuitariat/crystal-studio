@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Crystal Studio | 晶体结构工作台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><i data-lucide="atom"></i><span>Crystal Studio</span><span class="brand-divider"></span><span class="brand-sub">晶体结构工作台</span></div>
+    <div class="header-actions"><button id="example" class="quiet"><i data-lucide="flask-conical"></i><span>BiOCl 示例</span></button><button id="import" class="primary"><i data-lucide="folder-open"></i><span>导入 CIF</span></button></div>
+    <input type="file" id="file" accept=".cif,.mmcif" hidden>
+  </header>
+  <main class="workspace">
+    <section class="structure-pane">
+      <div class="scene-header"><div><div class="eyebrow">STRUCTURE / <span id="fileName">mp-22939.cif</span></div><h1 id="formula">BiOCl</h1><div class="structure-meta"><span class="status-dot"></span><span id="spacegroup">P4/nmm</span><span class="meta-divider">/</span><span id="atomSummary">6 原子 / 晶胞</span></div></div><div class="scene-badge" id="cellBadge">2 × 2 × 1</div></div>
+      <div class="viewer-toolbar">
+        <div class="segmented" id="viewModes" aria-label="结构样式"><button data-mode="ball" class="active">球棍</button><button data-mode="space">空间填充</button><button data-mode="stick">棍状</button></div>
+        <div class="toolbar-tools"><button class="icon-button" id="fit" title="适应视窗" aria-label="适应视窗"><i data-lucide="scan"></i></button><button class="icon-button" id="zoomIn" title="放大" aria-label="放大"><i data-lucide="zoom-in"></i></button><button class="icon-button" id="zoomOut" title="缩小" aria-label="缩小"><i data-lucide="zoom-out"></i></button><span class="tool-divider"></span><button class="icon-button" id="spin" title="自动旋转" aria-label="自动旋转" aria-pressed="false"><i data-lucide="rotate-3d"></i></button><button class="icon-button" id="resetView" title="重置视角" aria-label="重置视角"><i data-lucide="rotate-ccw"></i></button><button class="icon-button" id="fullscreen" title="全屏" aria-label="全屏"><i data-lucide="maximize"></i></button></div>
+      </div>
+      <div id="stage" class="stage checker">
+        <div id="canvasHost"></div>
+        <div id="dropOverlay"><i data-lucide="file-up"></i><strong>导入 CIF</strong></div>
+        <div id="atomTooltip" hidden></div>
+        <div class="axis-views" aria-label="沿晶轴观察"><button data-axis="a" title="沿 a 轴观察">a</button><button data-axis="b" title="沿 b 轴观察">b</button><button data-axis="c" title="沿 c 轴观察">c</button><button data-axis="iso" class="active" title="等轴视角"><i data-lucide="box"></i></button></div>
+        <div id="legend" class="legend"></div>
+        <div class="render-status"><span class="status-dot"></span><span id="renderStats">就绪</span></div>
+        <div id="axisGizmo" aria-hidden="true"></div>
+      </div>
+      <footer class="lattice-band"><div class="lattice-title"><i data-lucide="box"></i><span>晶胞参数</span></div><div id="latticeValues" class="lattice-values"></div></footer>
+    </section>
+    <aside class="inspector">
+      <div class="inspector-heading"><h2>外观设置</h2><button id="resetStyle" class="icon-button" title="恢复默认外观" aria-label="恢复默认外观"><i data-lucide="sliders-horizontal"></i></button></div>
+      <div class="inspector-scroll">
+        <section class="control-section"><div class="section-title"><i data-lucide="circle-dot"></i><h3>原子</h3><span id="elementCount" class="count">3</span></div>
+          <label class="range-label" for="atomScale">整体大小 <output id="atomScaleOut">1.00×</output></label><input id="atomScale" type="range" min="0.25" max="2.5" step="0.05" value="1">
+          <div class="element-table-head"><span>元素 / 颜色</span><span>半径 · Å</span><span></span></div><div id="elements"></div>
+        </section>
+        <section class="control-section"><div class="section-title"><i data-lucide="git-branch"></i><h3>化学键</h3><label class="switch"><input id="showBonds" type="checkbox" checked aria-label="显示化学键"><span></span></label></div>
+          <label class="range-label" for="bondRadius">半径 <output id="bondRadiusOut">0.10 Å</output></label><input id="bondRadius" type="range" min="0.02" max="0.4" step="0.01" value="0.1">
+          <div class="form-row"><label for="bondColorMode">配色</label><select id="bondColorMode"><option value="element">跟随元素</option><option value="uniform">统一颜色</option></select><input type="color" id="bondColor" value="#8d969c" title="化学键颜色" aria-label="化学键颜色" disabled></div>
+          <div class="form-row"><label for="bondMethod">成键方式</label><select id="bondMethod"><option value="radii">共价半径</option><option value="cutoff">距离截断</option></select></div>
+          <label class="range-label" for="bondThreshold"><span id="thresholdLabel">半径系数</span><output id="bondThresholdOut">1.30×</output></label><input id="bondThreshold" type="range" min="0.8" max="1.8" step="0.02" value="1.3">
+        </section>
+        <section class="control-section"><div class="section-title"><i data-lucide="boxes"></i><h3>晶胞与视图</h3></div>
+          <div class="supercell-label">超晶胞</div><div class="supercell-inputs"><label>a<input id="repeatA" type="number" min="1" max="8" step="1" value="2"></label><span>×</span><label>b<input id="repeatB" type="number" min="1" max="8" step="1" value="2"></label><span>×</span><label>c<input id="repeatC" type="number" min="1" max="8" step="1" value="1"></label><button id="applyCell" class="icon-button" title="应用超晶胞" aria-label="应用超晶胞"><i data-lucide="check"></i></button></div>
+          <label class="check-row"><span>晶胞边框</span><input id="showCell" type="checkbox" checked></label>
+          <label class="check-row"><span>边界原子</span><input id="boundaryAtoms" type="checkbox" checked></label>
+          <div class="form-row"><label for="projection">投影</label><select id="projection"><option value="orthographic">正交</option><option value="perspective">透视</option></select></div>
+          <div class="form-row"><label for="background">视窗背景</label><select id="background"><option value="checker">透明网格</option><option value="white">白色</option><option value="dark">深灰</option></select></div>
+          <div class="form-row" id="blockRow" hidden><label for="dataBlock">数据块</label><select id="dataBlock"></select></div>
+        </section>
+      </div>
+        <section class="control-section export-section"><div class="section-title"><i data-lucide="image"></i><h3>导出图像</h3><span class="format-tag">PNG</span></div>
+          <div class="form-row"><label for="exportWidth">图像尺寸</label><select id="exportWidth"><option value="1600">1600 × 1200</option><option value="2400" selected>2400 × 1800</option><option value="3200">3200 × 2400</option><option value="4096">4096 × 3072</option></select></div>
+          <label class="check-row"><span>透明背景</span><input id="transparent" type="checkbox" checked></label>
+          <button id="export" class="primary export-button"><i data-lucide="download"></i><span>导出 PNG</span><i data-lucide="arrow-up-right" class="export-arrow"></i></button>
+        </section>
+      <div class="local-status"><i data-lucide="hard-drive"></i><span>本地文件</span><span class="status-dot"></span></div>
+    </aside>
+  </main>
+  <div id="notice" role="status" hidden></div><div id="warnings" role="status" hidden></div>
+  <script src="vendor/three.min.js"></script><script src="vendor/OrbitControls.js"></script><script src="vendor/3Dmol.js"></script><script src="vendor/lucide.min.js"></script><script src="app.js"></script>
+</body>
+</html>

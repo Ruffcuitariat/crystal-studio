@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.dirname(fileURLToPath(import.meta.url));
+let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+html=html.replace(/<link rel="stylesheet" href="style.css">/,()=>'<style>'+fs.readFileSync(path.join(root,'style.css'),'utf8')+'</style>');
+html=html.replace(/<script src="([^"]+)"><\/script>/g,(_,src)=>'<script>\n'+fs.readFileSync(path.join(root,src),'utf8').replace(/<\/script/gi,'<\\/script')+'\n</script>');
+const licenses=['THREE-LICENSE.txt','3DMOL-LICENSE.txt','LUCIDE-LICENSE.txt'].map(name=>name+'\n'+fs.readFileSync(path.join(root,'vendor',name),'utf8')).join('\n\n');
+html=html.replace('</body>',()=>'<script type="text/plain" id="third-party-licenses">\n'+licenses.replace(/<\/script/gi,'<\\/script')+'\n</script>\n</body>');
+fs.writeFileSync(path.join(root,'Crystal-Studio.html'),html);
+console.log('Built Crystal-Studio.html ('+Math.round(Buffer.byteLength(html)/1024)+' KB)');
